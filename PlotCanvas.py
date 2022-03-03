@@ -6,14 +6,14 @@
 # MIT Licence                                              #
 ############################################################
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore
 
 # Prevent conflict with Qt5 and above.
 from matplotlib import use as mpl_use
-mpl_use("Qt4Agg")
+mpl_use("Qt5Agg")
 
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 import FlatCAMApp
 import logging
@@ -162,7 +162,8 @@ class PlotCanvas(QtCore.QObject):
         self.cache = CanvasCache(self, self.app)
         self.cache_thread = QtCore.QThread()
         self.cache.moveToThread(self.cache_thread)
-        super(PlotCanvas, self).connect(self.cache_thread, QtCore.SIGNAL("started()"), self.cache.run)
+        # super(PlotCanvas, self).connect(self.cache_thread, QtCore.SIGNAL("started()"), self.cache.run)
+        self.cache_thread.started.connect(self.cache.run)
         # self.connect()
         self.cache_thread.start()
         self.cache.new_screen.connect(self.on_new_screen)

@@ -1,6 +1,6 @@
 import sys
 import unittest
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
 from FlatCAMApp import App, tclCommands
 from FlatCAMObj import FlatCAMGerber, FlatCAMGeometry, FlatCAMCNCjob
 from ObjectUI import GerberObjectUI, GeometryObjectUI
@@ -21,7 +21,7 @@ class GerberFlowTestCase(unittest.TestCase):
     filename = 'simple1.gbr'
 
     def setUp(self):
-        self.app = QtGui.QApplication(sys.argv)
+        self.app = QtWidgets.QApplication(sys.argv)
 
         # Create App, keep app defaults (do not load
         # user-defined defaults).
@@ -147,7 +147,7 @@ class GerberFlowTestCase(unittest.TestCase):
         #
         # I'm not sure why, but running it only once does
         # not catch the new object. Might be a timing issue.
-        # http://pyqt.sourceforge.net/Docs/PyQt4/qeventloop.html#details
+        # http://pyqt.sourceforge.net/Docs/PyQt5/qeventloop.html#details
         for _ in range(2):
             sleep(0.1)
             self.app.processEvents()

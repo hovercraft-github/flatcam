@@ -17,7 +17,7 @@ import re
 import webbrowser
 import os
 import tkinter
-from PyQt4 import Qt, QtCore, QtGui
+from PyQt5 import Qt, QtCore, QtWidgets, QtGui
 import time  # Just used for debugging. Double check before removing.
 from xml.dom.minidom import parseString as parse_xml_string
 from contextlib import contextmanager
@@ -78,7 +78,7 @@ class App(QtCore.QObject):
 
     ## Version
     version = 8.5
-    #version_date_str = "2016/7"
+    # version_date_str = "2016/7"
     version_date = (0, 0, 0)
     version_name = None
 
@@ -162,11 +162,11 @@ class App(QtCore.QObject):
             from win32com.shell import shell, shellcon
             App.log.debug("Win32!")
             self.data_path = shell.SHGetFolderPath(0, shellcon.CSIDL_APPDATA, None, 0) + \
-                '/FlatCAM'
+                             '/FlatCAM'
             self.os = 'windows'
         else:  # Linux/Unix/MacOS
             self.data_path = os.path.expanduser('~') + \
-                '/.FlatCAM'
+                             '/.FlatCAM'
             self.os = 'unix'
 
         ###############################
@@ -213,9 +213,10 @@ class App(QtCore.QObject):
         QtCore.QObject.__init__(self)
 
         self.ui = FlatCAMGUI(self.version, name=self.version_name)
-        self.connect(self.ui,
-                     QtCore.SIGNAL("geomUpdate(int, int, int, int)"),
-                     self.save_geometry)
+        # self.connect(self.ui,
+        #              QtCore.SIGNAL("geomUpdate(int, int, int, int)"),
+        #              self.save_geometry)
+        self.ui.geom_update.connect(self.save_geometry)
 
         #### Plot Area ####
         # self.plotcanvas = PlotCanvas(self.ui.splitter)
@@ -231,7 +232,7 @@ class App(QtCore.QObject):
         ##############
         self.recent = []
 
-        self.clipboard = QtGui.QApplication.clipboard()
+        self.clipboard = QtWidgets.QApplication.clipboard()
 
         self.proc_container = FCVisibleProcessContainer(self.ui.activity_view)
 
@@ -334,9 +335,9 @@ class App(QtCore.QObject):
             "cncjob_dwelltime": 1,
             "background_timeout": 300000,  # Default value is 5 minutes
             "verbose_error_level": 0,  # Shell verbosity 0 = default
-                                       # (python trace only for unknown errors),
-                                       # 1 = show trace(show trace allways),
-                                       # 2 = (For the future).
+            # (python trace only for unknown errors),
+            # 1 = show trace(show trace allways),
+            # 2 = (For the future).
 
             # Persistence
             "last_folder": None,
@@ -347,10 +348,10 @@ class App(QtCore.QObject):
             "def_win_h": 650,
 
             # Constants...
-            "defaults_save_period_ms": 20000,   # Time between default saves.
-            "shell_shape": [500, 300],          # Shape of the shell in pixels.
-            "shell_at_startup": False,          # Show the shell at startup.
-            "recent_limit": 10,                 # Max. items in recent list.
+            "defaults_save_period_ms": 20000,  # Time between default saves.
+            "shell_shape": [500, 300],  # Shape of the shell in pixels.
+            "shell_at_startup": False,  # Show the shell at startup.
+            "recent_limit": 10,  # Max. items in recent list.
             "fit_key": '1',
             "zoom_out_key": '2',
             "zoom_in_key": '3',
@@ -469,11 +470,11 @@ class App(QtCore.QObject):
             "cncjob_append": "",
             "background_timeout": 300000,  # Default value is 5 minutes
             "verbose_error_level": 0,  # Shell verbosity:
-                                       # 0 = default(python trace only for unknown errors),
-                                       # 1 = show trace(show trace allways), 2 = (For the future).
+            # 0 = default(python trace only for unknown errors),
+            # 1 = show trace(show trace allways), 2 = (For the future).
         })
         self.options.update(self.defaults)  # Copy app defaults to project options
-        #self.options_write_form()
+        # self.options_write_form()
         self.on_options_combo_change(0)  # Will show the initial form
 
         self.collection = ObjectCollection.ObjectCollection()
@@ -487,7 +488,8 @@ class App(QtCore.QObject):
         self.worker = Worker(self)
         self.thr1 = QtCore.QThread()
         self.worker.moveToThread(self.thr1)
-        self.connect(self.thr1, QtCore.SIGNAL("started()"), self.worker.run)
+        # self.connect(self.thr1, QtCore.SIGNAL("started()"), self.worker.run)
+        self.thr1.started.connect(self.worker.run)
         self.thr1.start()
 
         #### Check for updates ####
@@ -497,11 +499,14 @@ class App(QtCore.QObject):
         self.worker2 = Worker(self, name="worker2")
         self.thr2 = QtCore.QThread()
         self.worker2.moveToThread(self.thr2)
-        self.connect(self.thr2, QtCore.SIGNAL("started()"), self.worker2.run)
-        self.connect(self.thr2, QtCore.SIGNAL("started()"),
-                     lambda: self.worker_task.emit({'fcn': self.version_check,
-                                                    'params': [],
-                                                    'worker_name': "worker2"}))
+        self.thr2.started.connect(self.worker2.run)
+        self.thr2.started.connect(lambda: self.worker_task.emit({'fcn': self.version_check,
+                                                                 'params': [], 'worker_name': "worker2"}))
+        # self.connect(self.thr2, QtCore.SIGNAL("started()"), self.worker2.run)
+        # self.connect(self.thr2, QtCore.SIGNAL("started()"),
+        #              lambda: self.worker_task.emit({'fcn': self.version_check,
+        #                                             'params': [],
+        #                                             'worker_name': "worker2"}))
         self.thr2.start()
 
         ### Signal handling ###
@@ -565,7 +570,7 @@ class App(QtCore.QObject):
         # Options
         self.ui.options_combo.activated.connect(self.on_options_combo_change)
         self.options_form.units_radio.group_toggle_fn = self.on_toggle_units
-        #Notebook tabs
+        # Notebook tabs
 
         ####################
         ### Other setups ###
@@ -609,13 +614,12 @@ class App(QtCore.QObject):
 
         self.init_tcl()
 
-        self.ui.shell_dock = QtGui.QDockWidget("FlatCAM TCL Shell")
+        self.ui.shell_dock = QtWidgets.QDockWidget("FlatCAM TCL Shell")
         self.ui.shell_dock.setWidget(self.shell)
         self.ui.shell_dock.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        self.ui.shell_dock.setFeatures(QtGui.QDockWidget.DockWidgetMovable |
-                             QtGui.QDockWidget.DockWidgetFloatable | QtGui.QDockWidget.DockWidgetClosable)
+        self.ui.shell_dock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable |
+                                       QtWidgets.QDockWidget.DockWidgetFloatable | QtWidgets.QDockWidget.DockWidgetClosable)
         self.ui.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self.ui.shell_dock)
-
 
         if self.defaults["shell_at_startup"]:
             self.ui.shell_dock.show()
@@ -667,7 +671,7 @@ class App(QtCore.QObject):
         try:
             self.defaults_form_fields[field].set_value(self.defaults[field])
         except KeyError:
-            #self.log.debug("defaults_write_form(): No field for: %s" % option)
+            # self.log.debug("defaults_write_form(): No field for: %s" % option)
             # TODO: Rethink this?
             pass
 
@@ -694,7 +698,7 @@ class App(QtCore.QObject):
                     obj.options['plot'] = False
                     obj.plot()
                 percentage += delta
-                self.progress.emit(int(percentage*100))
+                self.progress.emit(int(percentage * 100))
 
             self.progress.emit(0)
             self.plots_updated.emit()
@@ -811,8 +815,8 @@ class App(QtCore.QObject):
                 for a in reversed(trc):
                     trc_formated.append(a.replace("    ", " > ").replace("\n", ""))
                 text = "%s\nPython traceback: %s\n%s" % (exc_value,
-                                 exc_type,
-                                 "\n".join(trc_formated))
+                                                         exc_type,
+                                                         "\n".join(trc_formated))
 
             else:
                 text = "%s" % error
@@ -891,20 +895,20 @@ class App(QtCore.QObject):
                 self.shell.append_error("Unknown command\n")
                 return
 
-            #import inspect
-            #inspect.getargspec(someMethod)
-            if (type(commands[parts[0]]["params"]) is not list and len(parts)-1 != commands[parts[0]]["params"]) or \
-                    (type(commands[parts[0]]["params"]) is list and len(parts)-1 not in commands[parts[0]]["params"]):
+            # import inspect
+            # inspect.getargspec(someMethod)
+            if (type(commands[parts[0]]["params"]) is not list and len(parts) - 1 != commands[parts[0]]["params"]) or \
+                    (type(commands[parts[0]]["params"]) is list and len(parts) - 1 not in commands[parts[0]]["params"]):
                 self.shell.append_error(
                     "Command %s takes %d arguments. %d given.\n" %
-                    (parts[0], commands[parts[0]]["params"], len(parts)-1)
+                    (parts[0], commands[parts[0]]["params"], len(parts) - 1)
                 )
                 return
 
             cmdfcn = commands[parts[0]]["fcn"]
             cmdconv = commands[parts[0]]["converters"]
             if len(parts) - 1 > 0:
-                retval = cmdfcn(*[cmdconv[i](parts[i + 1]) for i in range(len(parts)-1)])
+                retval = cmdfcn(*[cmdconv[i](parts[i + 1]) for i in range(len(parts) - 1)])
             else:
                 retval = cmdfcn()
             retfcn = commands[parts[0]]["retfcn"]
@@ -912,8 +916,8 @@ class App(QtCore.QObject):
                 self.shell.append_output(retfcn(retval) + "\n")
 
         except Exception as e:
-            #self.shell.append_error(''.join(traceback.format_exc()))
-            #self.shell.append_error("?\n")
+            # self.shell.append_error(''.join(traceback.format_exc()))
+            # self.shell.append_error("?\n")
             self.shell.append_error(str(e) + "\n")
 
     def info(self, msg, toshell=True):
@@ -976,10 +980,10 @@ class App(QtCore.QObject):
         self.save_defaults()
 
     def message_dialog(self, title, message, kind="info"):
-        icon = {"info": QtGui.QMessageBox.Information,
-                "warning": QtGui.QMessageBox.Warning,
-                "error": QtGui.QMessageBox.Critical}[str(kind)]
-        dlg = QtGui.QMessageBox(icon, title, message, parent=self.ui)
+        icon = {"info": QtWidgets.QMessageBox.Information,
+                "warning": QtWidgets.QMessageBox.Warning,
+                "error": QtWidgets.QMessageBox.Critical}[str(kind)]
+        dlg = QtWidgets.QMessageBox(icon, title, message, parent=self.ui)
         dlg.setText(message)
         dlg.exec_()
 
@@ -1005,7 +1009,7 @@ class App(QtCore.QObject):
             self.inform.emit('Failed to open recent files file for writing.')
             return
 
-        #try:
+        # try:
         json.dump(self.recent, f)
         # except:
         #     App.log.error("Failed to write to recent items file.")
@@ -1091,7 +1095,7 @@ class App(QtCore.QObject):
         self.log.debug("Moving new object back to main thread.")
 
         # Move the object to the main thread and let the app know that it is available.
-        obj.moveToThread(QtGui.QApplication.instance().thread())
+        obj.moveToThread(QtWidgets.QApplication.instance().thread())
         self.object_created.emit(obj, self.plot)
 
         return obj
@@ -1124,25 +1128,25 @@ class App(QtCore.QObject):
         version_date_str = self.version_date_str
         version_year = self.version_date[0]
 
-        class AboutDialog(QtGui.QDialog):
+        class AboutDialog(QtWidgets.QDialog):
             def __init__(self, parent=None):
-                QtGui.QDialog.__init__(self, parent)
+                QtWidgets.QDialog.__init__(self, parent)
 
                 # Icon and title
                 self.setWindowIcon(parent.app_icon)
                 self.setWindowTitle("FlatCAM")
 
-                layout1 = QtGui.QVBoxLayout()
+                layout1 = QtWidgets.QVBoxLayout()
                 self.setLayout(layout1)
 
-                layout2 = QtGui.QHBoxLayout()
+                layout2 = QtWidgets.QHBoxLayout()
                 layout1.addLayout(layout2)
 
-                logo = QtGui.QLabel()
+                logo = QtWidgets.QLabel()
                 logo.setPixmap(QtGui.QPixmap('share/flatcam_icon256.png'))
                 layout2.addWidget(logo, stretch=0)
 
-                title = QtGui.QLabel(
+                title = QtWidgets.QLabel(
                     "<font size=8><B>FlatCAM</B></font><BR>"
                     "Version {} ({})<BR>"
                     "<BR>"
@@ -1157,10 +1161,10 @@ class App(QtCore.QObject):
                 )
                 layout2.addWidget(title, stretch=1)
 
-                layout3 = QtGui.QHBoxLayout()
+                layout3 = QtWidgets.QHBoxLayout()
                 layout1.addLayout(layout3)
                 layout3.addStretch()
-                okbtn = QtGui.QPushButton("Close")
+                okbtn = QtWidgets.QPushButton("Close")
                 layout3.addWidget(okbtn)
 
                 okbtn.clicked.connect(self.accept)
@@ -1178,7 +1182,7 @@ class App(QtCore.QObject):
         self.save_defaults()
 
     def on_file_exit(self):
-        QtGui.qApp.quit()
+        QtWidgets.qApp.quit()
 
     def save_defaults(self, silent=False):
         """
@@ -1298,7 +1302,7 @@ class App(QtCore.QObject):
             return
         for option in self.options:
             if option.find(obj.kind + "_") == 0:
-                oname = option[len(obj.kind)+1:]
+                oname = option[len(obj.kind) + 1:]
                 obj.options[oname] = self.options[option]
         obj.to_form()  # Update UI
 
@@ -1361,7 +1365,7 @@ class App(QtCore.QObject):
             return
         for option in self.defaults:
             if option.find(obj.kind + "_") == 0:
-                oname = option[len(obj.kind)+1:]
+                oname = option[len(obj.kind) + 1:]
                 obj.options[oname] = self.defaults[option]
         obj.to_form()  # Update UI
 
@@ -1400,7 +1404,8 @@ class App(QtCore.QObject):
         # Options to scale
         dimensions = ['gerber_isotooldia', 'gerber_cutoutmargin', 'gerber_cutoutgapsize',
                       'gerber_noncoppermargin', 'gerber_bboxmargin', 'excellon_drillz',
-                      'excellon_travelz', 'excellon_feedrate', 'excellon_toolchangez', 'excellon_tooldia', 'cncjob_tooldia',
+                      'excellon_travelz', 'excellon_feedrate', 'excellon_toolchangez', 'excellon_tooldia',
+                      'cncjob_tooldia',
                       'geometry_cutz', 'geometry_travelz', 'geometry_feedrate',
                       'geometry_cnctooldia', 'geometry_painttooldia', 'geometry_paintoverlap',
                       'geometry_paintmargin']
@@ -1410,21 +1415,21 @@ class App(QtCore.QObject):
                 self.options[dim] *= sfactor
 
         # The scaling factor depending on choice of units.
-        factor = 1/25.4
+        factor = 1 / 25.4
         if self.options_form.units_radio.get_value().upper() == 'MM':
             factor = 25.4
 
         # Changing project units. Warn user.
-        msgbox = QtGui.QMessageBox()
+        msgbox = QtWidgets.QMessageBox()
         msgbox.setText("<B>Change project units ...</B>")
         msgbox.setInformativeText("Changing the units of the project causes all geometrical "
                                   "properties of all objects to be scaled accordingly. Continue?")
-        msgbox.setStandardButtons(QtGui.QMessageBox.Cancel | QtGui.QMessageBox.Ok)
-        msgbox.setDefaultButton(QtGui.QMessageBox.Ok)
+        msgbox.setStandardButtons(QtWidgets.QMessageBox.Cancel | QtWidgets.QMessageBox.Ok)
+        msgbox.setDefaultButton(QtWidgets.QMessageBox.Ok)
 
         response = msgbox.exec_()
 
-        if response == QtGui.QMessageBox.Ok:
+        if response == QtWidgets.QMessageBox.Ok:
             self.options_read_form()
             scale_options(factor)
             self.options_write_form()
@@ -1446,7 +1451,7 @@ class App(QtCore.QObject):
 
         self.options_read_form()
         self.inform.emit("Converted units to %s" % self.options["units"])
-        #self.ui.units_label.setText("[" + self.options["units"] + "]")
+        # self.ui.units_label.setText("[" + self.options["units"] + "]")
         self.set_screen_units(self.options["units"])
 
     def on_options_combo_change(self, sel):
@@ -1660,7 +1665,7 @@ class App(QtCore.QObject):
         try:
             App.log.debug('button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (
                 event.button, event.x, event.y, event.xdata, event.ydata))
-            modifiers = QtGui.QApplication.keyboardModifiers()
+            modifiers = QtWidgets.QApplication.keyboardModifiers()
             if modifiers == QtCore.Qt.ControlModifier:
                 self.clipboard.setText(self.defaults["point_clipboard_format"] % (event.xdata, event.ydata))
 
@@ -1726,15 +1731,17 @@ class App(QtCore.QObject):
         App.log.debug("on_fileopengerber()")
 
         try:
-            filename = QtGui.QFileDialog.getOpenFileName(caption="Open Gerber",
-                                                         directory=self.get_last_folder())
+            filename_and_type = QtWidgets.QFileDialog.getOpenFileName(caption="Open Gerber",
+                                                                      directory=self.get_last_folder(),
+                                                                      filter='Gerber files (*.gbr *.gerber)')
         except TypeError:
-            filename = QtGui.QFileDialog.getOpenFileName(caption="Open Gerber")
+            filename_and_type = QtWidgets.QFileDialog.getOpenFileName(caption="Open Gerber",
+                                                                      filter='Gerber files (*.gbr *.gerber)')
 
         # The Qt methods above will return a QString which can cause problems later.
         # So far json.dump() will fail to serialize it.
         # TODO: Improve the serialization methods and remove this fix.
-        filename = str(filename)
+        filename = filename_and_type[0]
 
         if filename == "":
             self.inform.emit("Open cancelled.")
@@ -1753,15 +1760,17 @@ class App(QtCore.QObject):
         App.log.debug("on_fileopenexcellon()")
 
         try:
-            filename = QtGui.QFileDialog.getOpenFileName(caption="Open Excellon",
-                                                         directory=self.get_last_folder())
+            filename_and_type = QtWidgets.QFileDialog.getOpenFileName(caption="Open Excellon",
+                                                                      directory=self.get_last_folder(),
+                                                                      filter='Excellon/drill files (*.drl)')
         except TypeError:
-            filename = QtGui.QFileDialog.getOpenFileName(caption="Open Excellon")
+            filename_and_type = QtWidgets.QFileDialog.getOpenFileName(caption="Open Excellon",
+                                                                      filter='Excellon/drill files (*.drl)')
 
         # The Qt methods above will return a QString which can cause problems later.
         # So far json.dump() will fail to serialize it.
         # TODO: Improve the serialization methods and remove this fix.
-        filename = str(filename)
+        filename = filename_and_type[0]
 
         if filename == "":
             self.inform.emit("Open cancelled.")
@@ -1780,15 +1789,17 @@ class App(QtCore.QObject):
         App.log.debug("on_fileopengcode()")
 
         try:
-            filename = QtGui.QFileDialog.getOpenFileName(caption="Open G-Code",
-                                                         directory=self.get_last_folder())
+            filename_and_type = QtWidgets.QFileDialog.getOpenFileName(caption="Open G-Code",
+                                                                      directory=self.get_last_folder(),
+                                                                      filter='G-Code files (*.ngc *.gc')
         except TypeError:
-            filename = QtGui.QFileDialog.getOpenFileName(caption="Open G-Code")
+            filename_and_type = QtWidgets.QFileDialog.getOpenFileName(caption="Open G-Code",
+                                                                      filter='G-Code files (*.ngc *.gc')
 
         # The Qt methods above will return a QString which can cause problems later.
         # So far json.dump() will fail to serialize it.
         # TODO: Improve the serialization methods and remove this fix.
-        filename = str(filename)
+        filename = filename_and_type[0]
 
         if filename == "":
             self.inform.emit("Open cancelled.")
@@ -1807,15 +1818,17 @@ class App(QtCore.QObject):
         App.log.debug("on_file_openproject()")
 
         try:
-            filename = QtGui.QFileDialog.getOpenFileName(caption="Open Project",
-                                                         directory=self.get_last_folder())
+            filename_and_type = QtWidgets.QFileDialog.getOpenFileName(caption="Open Project",
+                                                                      directory=self.get_last_folder(),
+                                                                      filter='FlatCAM project files (*.flatcam)')
         except TypeError:
-            filename = QtGui.QFileDialog.getOpenFileName(caption="Open Project")
+            filename_and_type = QtWidgets.QFileDialog.getOpenFileName(caption="Open Project",
+                                                                      filter='FlatCAM project files (*.flatcam)')
 
         # The Qt methods above will return a QString which can cause problems later.
         # So far json.dump() will fail to serialize it.
         # TODO: Improve the serialization methods and remove this fix.
-        filename = str(filename)
+        filename = filename_and_type[0]
 
         if filename == "":
             self.inform.emit("Open cancelled.")
@@ -1839,38 +1852,44 @@ class App(QtCore.QObject):
         if obj is None:
             self.inform.emit("WARNING: No object selected.")
             msg = "Please Select a Geometry object to export"
-            msgbox = QtGui.QMessageBox()
+            msgbox = QtWidgets.QMessageBox()
             msgbox.setInformativeText(msg)
-            msgbox.setStandardButtons(QtGui.QMessageBox.Ok)
-            msgbox.setDefaultButton(QtGui.QMessageBox.Ok)
+            msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msgbox.setDefaultButton(QtWidgets.QMessageBox.Ok)
             msgbox.exec_()
             return
 
         # Check for more compatible types and add as required
-        if (not isinstance(obj, FlatCAMGeometry) and not isinstance(obj, FlatCAMGerber) and not isinstance(obj, FlatCAMCNCjob)
-            and not isinstance(obj, FlatCAMExcellon)):
+        if (not isinstance(obj, FlatCAMGeometry) and not isinstance(obj, FlatCAMGerber) and not isinstance(obj,
+                                                                                                           FlatCAMCNCjob)
+                and not isinstance(obj, FlatCAMExcellon)):
             msg = "ERROR: Only Geometry, Gerber and CNCJob objects can be used."
-            msgbox = QtGui.QMessageBox()
+            msgbox = QtWidgets.QMessageBox()
             msgbox.setInformativeText(msg)
-            msgbox.setStandardButtons(QtGui.QMessageBox.Ok)
-            msgbox.setDefaultButton(QtGui.QMessageBox.Ok)
+            msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msgbox.setDefaultButton(QtWidgets.QMessageBox.Ok)
             msgbox.exec_()
             return
 
         name = self.collection.get_active().options["name"]
 
         try:
-            filename = QtGui.QFileDialog.getSaveFileName(caption="Export SVG",
-                                                         directory=self.get_last_folder(), filter="*.svg")
+            filename_and_type = QtWidgets.QFileDialog.getSaveFileName(caption="Export SVG",
+                                                                      directory=self.get_last_folder(),
+                                                                      filter="SVG files (*.svg)")
         except TypeError:
-            filename = QtGui.QFileDialog.getSaveFileName(caption="Export SVG")
+            filename_and_type = QtWidgets.QFileDialog.getSaveFileName(caption="Export SVG",
+                                                                      filter="SVG files (*.svg)")
 
-        filename = str(filename)
+        filename = filename_and_type[0]
 
         if filename == "":
             self.inform.emit("Export SVG cancelled.")
             return
         else:
+            if not os.path.splitext(filename)[1]:
+                selected_ext = re.search('\\((.+?)\\)', filename_and_type[1]).group(1).replace('*', '')
+                filename = filename + selected_ext
             self.export_svg(name, filename)
 
     def on_file_importsvg(self):
@@ -1883,12 +1902,14 @@ class App(QtCore.QObject):
         App.log.debug("on_file_importsvg()")
 
         try:
-            filename = QtGui.QFileDialog.getOpenFileName(caption="Import SVG",
-                                                         directory=self.get_last_folder())
+            filename_and_type = QtWidgets.QFileDialog.getOpenFileName(caption="Import SVG",
+                                                                      directory=self.get_last_folder(),
+                                                                      filter='SVG files (*.svg)')
         except TypeError:
-            filename = QtGui.QFileDialog.getOpenFileName(caption="Import SVG")
+            filename_and_type = QtWidgets.QFileDialog.getOpenFileName(caption="Import SVG",
+                                                                      filter='SVG files (*.svg)')
 
-        filename = str(filename)
+        filename = filename_and_type[0]
 
         if filename == "":
             self.inform.emit("Open cancelled.")
@@ -1926,12 +1947,21 @@ class App(QtCore.QObject):
         self.report_usage("on_file_saveprojectas")
 
         try:
-            filename = QtGui.QFileDialog.getSaveFileName(caption="Save Project As ...",
-                                                         directory=self.get_last_folder())
+            filename_and_type = QtWidgets.QFileDialog.getSaveFileName(caption="Save Project As ...",
+                                                                      directory=self.get_last_folder(),
+                                                                      filter='FlatCAM project files (*.flatcam)')
         except TypeError:
-            filename = QtGui.QFileDialog.getSaveFileName(caption="Save Project As ...")
+            filename_and_type = QtWidgets.QFileDialog.getSaveFileName(caption="Save Project As ...",
+                                                                      filter='FlatCAM project files (*.flatcam)')
 
-        filename = str(filename)
+        filename = filename_and_type[0]
+        if filename == '':
+            self.inform.emit("Save project cancelled.")
+            return
+
+        if not os.path.splitext(filename)[1]:
+            selected_ext = re.search('\\((.+?)\\)', filename_and_type[1]).group(1).replace('*', '')
+            filename = filename + selected_ext
 
         try:
             f = open(filename, 'r')
@@ -1942,12 +1972,12 @@ class App(QtCore.QObject):
 
         msg = "File exists. Overwrite?"
         if exists:
-            msgbox = QtGui.QMessageBox()
+            msgbox = QtWidgets.QMessageBox()
             msgbox.setInformativeText(msg)
-            msgbox.setStandardButtons(QtGui.QMessageBox.Cancel | QtGui.QMessageBox.Ok)
-            msgbox.setDefaultButton(QtGui.QMessageBox.Cancel)
+            msgbox.setStandardButtons(QtWidgets.QMessageBox.Cancel | QtWidgets.QMessageBox.Ok)
+            msgbox.setDefaultButton(QtWidgets.QMessageBox.Cancel)
             result = msgbox.exec_()
-            if result == QtGui.QMessageBox.Cancel:
+            if result == QtWidgets.QMessageBox.Cancel:
                 return
 
         self.save_project(filename)
@@ -2018,11 +2048,9 @@ class App(QtCore.QObject):
         """
 
         def obj_init(geo_obj, app_obj):
-
             geo_obj.import_svg(filename)
 
         with self.proc_container.new("Importing SVG") as proc:
-
             # Object name
             name = outname or filename.split('/')[-1].split('\\')[-1]
 
@@ -2101,7 +2129,7 @@ class App(QtCore.QObject):
             self.file_opened.emit("gerber", filename)
 
             self.progress.emit(100)
-            #proc.done()
+            # proc.done()
 
             # GUI feedback
             self.inform.emit("Opened: " + filename)
@@ -2120,11 +2148,11 @@ class App(QtCore.QObject):
 
         App.log.debug("open_excellon()")
 
-        #self.progress.emit(10)
+        # self.progress.emit(10)
 
         # How the object should be initialized
         def obj_init(excellon_obj, app_obj):
-            #self.progress.emit(20)
+            # self.progress.emit(20)
 
             try:
                 excellon_obj.parse_file(filename)
@@ -2153,7 +2181,7 @@ class App(QtCore.QObject):
                 app_obj.inform.emit("[error] No geometry found in file: " + filename)
                 self.collection.set_active(excellon_obj.options["name"])
                 self.collection.delete_active()
-            #self.progress.emit(70)
+            # self.progress.emit(70)
 
         with self.proc_container.new("Opening Excellon."):
 
@@ -2167,7 +2195,7 @@ class App(QtCore.QObject):
 
             # GUI feedback
             self.inform.emit("Opened: " + filename)
-            #self.progress.emit(100)
+            # self.progress.emit(100)
 
     def open_gcode(self, filename, outname=None):
         """
@@ -2278,7 +2306,7 @@ class App(QtCore.QObject):
         ##Project options
         self.options.update(d['options'])
         self.project_filename = filename
-        #self.ui.units_label.setText("[" + self.options["units"] + "]")
+        # self.ui.units_label.setText("[" + self.options["units"] + "]")
         self.set_screen_units(self.options["units"])
 
         ## Re create objects
@@ -2286,6 +2314,7 @@ class App(QtCore.QObject):
         for obj in d['objs']:
             def obj_init(obj_inst, app_inst):
                 obj_inst.from_dict(obj)
+
             App.log.debug(obj['kind'] + ":  " + obj['options']['name'])
             self.new_object(obj['kind'], obj['options']['name'], obj_init, active=False, fit=False, plot=False)
 
@@ -2356,13 +2385,13 @@ class App(QtCore.QObject):
             for obj in self.collection.get_list():
                 obj.plot()
                 percentage += delta
-                self.progress.emit(int(percentage*100))
+                self.progress.emit(int(percentage * 100))
 
             self.progress.emit(0)
             self.plots_updated.emit()
 
         # Send to worker
-        #self.worker.add_task(worker_task, [self])
+        # self.worker.add_task(worker_task, [self])
         self.worker_task.emit({'fcn': worker_task, 'params': [self]})
 
     def register_folder(self, filename):
@@ -2452,6 +2481,7 @@ class App(QtCore.QObject):
             def except_hook(type_, value, traceback_):
                 ex.append(value)
                 oeh(type_, value, traceback_)
+
             sys.excepthook = except_hook
 
             # Terminate on timeout
@@ -3619,40 +3649,39 @@ class App(QtCore.QObject):
             import collections
             od = collections.OrderedDict(sorted(commands.items()))
             for cmd_, val in list(od.items()):
-                #print cmd, '\n', ''.join(['~']*len(cmd))
+                # print cmd, '\n', ''.join(['~']*len(cmd))
                 output += cmd_ + ' \n' + ''.join(['~'] * len(cmd_)) + '\n'
 
                 t = val['help']
                 usage_i = t.find('>')
                 if usage_i < 0:
                     expl = t
-                    #print expl + '\n'
+                    # print expl + '\n'
                     output += expl + '\n\n'
                     continue
 
                 expl = t[:usage_i - 1]
-                #print expl + '\n'
+                # print expl + '\n'
                 output += expl + '\n\n'
 
                 end_usage_i = t[usage_i:].find('\n')
 
                 if end_usage_i < 0:
                     end_usage_i = len(t[usage_i:])
-                    #print '    ' + t[usage_i:]
-                    #print '       No parameters.\n'
+                    # print '    ' + t[usage_i:]
+                    # print '       No parameters.\n'
                     output += '    ' + t[usage_i:] + '\n       No parameters.\n'
                 else:
-                    extras = t[usage_i+end_usage_i+1:]
+                    extras = t[usage_i + end_usage_i + 1:]
                     parts = [s.strip() for s in extras.split('\n')]
 
-                    #print '    ' + t[usage_i:usage_i+end_usage_i]
-                    output += '    ' + t[usage_i:usage_i+end_usage_i] + '\n'
+                    # print '    ' + t[usage_i:usage_i+end_usage_i]
+                    output += '    ' + t[usage_i:usage_i + end_usage_i] + '\n'
                     for p in parts:
-                        #print '       ' + p + '\n'
+                        # print '       ' + p + '\n'
                         output += '       ' + p + '\n\n'
 
             return output
-
 
         # def follow(obj_name, *args):
         #     a, kwa = h(*args)
@@ -3697,7 +3726,6 @@ class App(QtCore.QObject):
         #         obj.follow(**kwa)
         #     except Exception as e:
         #         return "ERROR: %s" % str(e)
-
 
         # def get_sys(param):
         #     if param in self.defaults:
@@ -3915,7 +3943,7 @@ class App(QtCore.QObject):
             #             "   box: Name of object which act as box (cutout for example.)\n" +
             #             "   axis: Mirror axis parallel to the X or Y axis.\n" +
             #             "   dist: Distance of the mirror axis to the X or Y axis."
-            #},
+            # },
             # --- Migrated to new architecture ---
             # 'aligndrillgrid': {
             #     'fcn': aligndrillgrid,
@@ -4227,6 +4255,7 @@ class App(QtCore.QObject):
         def make_callback(func, fname):
             def opener():
                 func(fname)
+
             return opener
 
         # Reset menu
@@ -4237,7 +4266,7 @@ class App(QtCore.QObject):
             filename = recent['filename'].split('/')[-1].split('\\')[-1]
 
             try:
-                action = QtGui.QAction(QtGui.QIcon(icons[recent["kind"]]), filename, self)
+                action = QtWidgets.QAction(QtGui.QIcon(icons[recent["kind"]]), filename, self)
 
                 # Attach callback
                 o = make_callback(openers[recent["kind"]], recent['filename'])
@@ -4254,7 +4283,7 @@ class App(QtCore.QObject):
         # self.ui.recent.show()
 
     def setup_component_editor(self):
-        label = QtGui.QLabel("Choose an item from Project")
+        label = QtWidgets.QLabel("Choose an item from Project")
         label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         self.ui.selected_scroll_area.setWidget(label)
 
@@ -4280,10 +4309,10 @@ class App(QtCore.QObject):
 
         self.log.debug("version_check()")
         full_url = App.version_url + \
-            "?s=" + str(self.defaults['serial']) + \
-            "&v=" + str(self.version) + \
-            "&os=" + str(self.os) + \
-            "&" + urllib.parse.urlencode(self.defaults["stats"])
+                   "?s=" + str(self.defaults['serial']) + \
+                   "&v=" + str(self.version) + \
+                   "&os=" + str(self.os) + \
+                   "&" + urllib.parse.urlencode(self.defaults["stats"])
         App.log.debug("Checking for updates @ %s" % full_url)
 
         ### Get the data
@@ -4316,9 +4345,9 @@ class App(QtCore.QObject):
         self.message.emit(
             "Newer Version Available",
             str("There is a newer version of FlatCAM " +
-                           "available for download:<br><br>" +
-                           "<B>" + data["name"] + "</b><br>" +
-                           data["message"].replace("\n", "<br>")),
+                "available for download:<br><br>" +
+                "<B>" + data["name"] + "</b><br>" +
+                data["message"].replace("\n", "<br>")),
             "info"
         )
 
@@ -4336,7 +4365,7 @@ class App(QtCore.QObject):
                 obj.options['plot'] = True
                 obj.plot()
                 percentage += delta
-                self.progress.emit(int(percentage*100))
+                self.progress.emit(int(percentage * 100))
 
             self.progress.emit(0)
             self.plots_updated.emit()
@@ -4393,7 +4422,7 @@ class App(QtCore.QObject):
 
 # def main():
 #
-#     app = QtGui.QApplication(sys.argv)
+#     app = QtWidgets.QApplication(sys.argv)
 #     fc = App()
 #     sys.exit(app.exec_())
 #

@@ -6,7 +6,7 @@
 # MIT Licence                                              #
 ############################################################
 
-from PyQt4 import QtGui, QtCore, Qt
+from PyQt5 import QtWidgets, QtCore, Qt, QtGui
 import FlatCAMApp
 from camlib import *
 from FlatCAMTool import FlatCAMTool
@@ -44,11 +44,11 @@ class BufferSelectionTool(FlatCAMTool):
         self.fcdraw = fcdraw
 
         ## Title
-        title_label = QtGui.QLabel("<font size=4><b>%s</b></font>" % self.toolName)
+        title_label = QtWidgets.QLabel("<font size=4><b>%s</b></font>" % self.toolName)
         self.layout.addWidget(title_label)
 
         ## Form Layout
-        form_layout = QtGui.QFormLayout()
+        form_layout = QtWidgets.QFormLayout()
         self.layout.addLayout(form_layout)
 
         ## Buffer distance
@@ -56,10 +56,10 @@ class BufferSelectionTool(FlatCAMTool):
         form_layout.addRow("Buffer distance:", self.buffer_distance_entry)
 
         ## Buttons
-        hlay = QtGui.QHBoxLayout()
+        hlay = QtWidgets.QHBoxLayout()
         self.layout.addLayout(hlay)
         hlay.addStretch()
-        self.buffer_button = QtGui.QPushButton("Buffer")
+        self.buffer_button = QtWidgets.QPushButton("Buffer")
         hlay.addWidget(self.buffer_button)
 
         self.layout.addStretch()
@@ -86,15 +86,15 @@ class PaintOptionsTool(FlatCAMTool):
         self.fcdraw = fcdraw
 
         ## Title
-        title_label = QtGui.QLabel("<font size=4><b>%s</b></font>" % self.toolName)
+        title_label = QtWidgets.QLabel("<font size=4><b>%s</b></font>" % self.toolName)
         self.layout.addWidget(title_label)
 
         ## Form Layout
-        form_layout = QtGui.QFormLayout()
+        form_layout = QtWidgets.QFormLayout()
         self.layout.addLayout(form_layout)
 
         # Tool dia
-        ptdlabel = QtGui.QLabel('Tool dia:')
+        ptdlabel = QtWidgets.QLabel('Tool dia:')
         ptdlabel.setToolTip(
             "Diameter of the tool to\n"
             "be used in the operation."
@@ -104,7 +104,7 @@ class PaintOptionsTool(FlatCAMTool):
         form_layout.addRow(ptdlabel, self.painttooldia_entry)
 
         # Overlap
-        ovlabel = QtGui.QLabel('Overlap:')
+        ovlabel = QtWidgets.QLabel('Overlap:')
         ovlabel.setToolTip(
             "How much (fraction) of the tool\n"
             "width to overlap each tool pass."
@@ -114,7 +114,7 @@ class PaintOptionsTool(FlatCAMTool):
         form_layout.addRow(ovlabel, self.paintoverlap_entry)
 
         # Margin
-        marginlabel = QtGui.QLabel('Margin:')
+        marginlabel = QtWidgets.QLabel('Margin:')
         marginlabel.setToolTip(
             "Distance by which to avoid\n"
             "the edges of the polygon to\n"
@@ -125,7 +125,7 @@ class PaintOptionsTool(FlatCAMTool):
         form_layout.addRow(marginlabel, self.paintmargin_entry)
 
         # Method
-        methodlabel = QtGui.QLabel('Method:')
+        methodlabel = QtWidgets.QLabel('Method:')
         methodlabel.setToolTip(
             "Algorithm to paint the polygon:<BR>"
             "<B>Standard</B>: Fixed step inwards.<BR>"
@@ -139,10 +139,10 @@ class PaintOptionsTool(FlatCAMTool):
         form_layout.addRow(methodlabel, self.paintmethod_combo)
 
         ## Buttons
-        hlay = QtGui.QHBoxLayout()
+        hlay = QtWidgets.QHBoxLayout()
         self.layout.addLayout(hlay)
         hlay.addStretch()
-        self.paint_button = QtGui.QPushButton("Paint")
+        self.paint_button = QtWidgets.QPushButton("Paint")
         hlay.addWidget(self.paint_button)
 
         self.layout.addStretch()
@@ -692,7 +692,7 @@ class FlatCAMDraw(QtCore.QObject):
         self.axes = self.canvas.new_axes("draw")
 
         ### Drawing Toolbar ###
-        self.drawing_toolbar = QtGui.QToolBar("Draw Toolbar")
+        self.drawing_toolbar = QtWidgets.QToolBar("Draw Toolbar")
         self.drawing_toolbar.setDisabled(disabled)
         self.app.ui.addToolBar(self.drawing_toolbar)
 
@@ -720,7 +720,7 @@ class FlatCAMDraw(QtCore.QObject):
 
         ### Snap Toolbar ###
 
-        self.snap_toolbar = QtGui.QToolBar("Grid Toolbar")
+        self.snap_toolbar = QtWidgets.QToolBar("Grid Toolbar")
         self.grid_snap_btn = self.snap_toolbar.addAction(QtGui.QIcon('share/grid32.png'), 'Snap to grid')
         self.grid_gap_x_entry = FCEntry()
 
@@ -744,7 +744,7 @@ class FlatCAMDraw(QtCore.QObject):
         self.app.ui.addToolBar(self.snap_toolbar)
 
         ### Application menu ###
-        self.menu = QtGui.QMenu("Drawing")
+        self.menu = QtWidgets.QMenu("Drawing")
         self.app.ui.menu.insertMenu(self.app.ui.menutoolaction, self.menu)
         # self.select_menuitem = self.menu.addAction(QtGui.QIcon('share:pointer16.png'), "Select 'Esc'")
         # self.add_circle_menuitem = self.menu.addAction(QtGui.QIcon('share:circle16.png'), 'Add Circle')
@@ -1016,7 +1016,9 @@ class FlatCAMDraw(QtCore.QObject):
         :return: None
         """
         # Selection with left mouse button
-        if self.active_tool is not None and event.button is 1:
+        # if self.active_tool is not None and event.button is 1:
+        # TODO: check influence of the following fix:
+        if self.active_tool is not None and event.button == 1:
             # Dispatch event to active_tool
             msg = self.active_tool.click(self.snap(event.xdata, event.ydata))
             self.app.inform.emit(msg)

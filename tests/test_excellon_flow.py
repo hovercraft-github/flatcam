@@ -1,5 +1,5 @@
 import unittest
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
 import sys
 from FlatCAMApp import App
 from FlatCAMObj import FlatCAMExcellon, FlatCAMCNCjob
@@ -21,7 +21,7 @@ class ExcellonFlowTestCase(unittest.TestCase):
     filename = 'case1.drl'
 
     def setUp(self):
-        self.app = QtGui.QApplication(sys.argv)
+        self.app = QtWidgets.QApplication(sys.argv)
 
         # Create App, keep app defaults (do not load
         # user-defined defaults).
@@ -105,7 +105,7 @@ class ExcellonFlowTestCase(unittest.TestCase):
         #
         # I'm not sure why, but running it only once does
         # not catch the new object. Might be a timing issue.
-        # http://pyqt.sourceforge.net/Docs/PyQt4/qeventloop.html#details
+        # http://pyqt.sourceforge.net/Docs/PyQt5/qeventloop.html#details
         for _ in range(2):
             sleep(0.1)
             self.app.processEvents()

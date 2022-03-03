@@ -6,8 +6,10 @@
 # MIT Licence                                              #
 ############################################################
 
+import re
+import os
 from io import StringIO
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 from copy import copy
 from ObjectUI import *
 import FlatCAMApp
@@ -744,13 +746,14 @@ class FlatCAMExcellon(FlatCAMObj, Excellon):
                 #    exc.to_form()
                 #    exc.read_form()
                 for option in exc.options:
-                    if option is not 'name':
+                    # if option is not 'name': TODO: check influence of the following fix:
+                    if option != 'name':
                         try:
                             exc_final.options[option] = exc.options[option]
                         except:
-                            exc.app.log.warning("Failed to copy option.",option)
+                            exc.app.log.warning("Failed to copy option.", option)
 
-                #deep copy of all drills,to avoid any references
+                # deep copy of all drills,to avoid any references
                 for drill in exc.drills:
                     point = Point(drill['point'].x,drill['point'].y)
                     exc_final.drills.append({"point": point, "tool": drill['tool']})
@@ -798,12 +801,12 @@ class FlatCAMExcellon(FlatCAMObj, Excellon):
                 if drill.get('tool') == tool:
                     drill_cnt += 1
 
-            id = QtGui.QTableWidgetItem(tool)
+            id = QtWidgets.QTableWidgetItem(tool)
             id.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.ui.tools_table.setItem(i, 0, id)  # Tool name/id
-            dia = QtGui.QTableWidgetItem(str(self.tools[tool]['C']))
+            dia = QtWidgets.QTableWidgetItem(str(self.tools[tool]['C']))
             dia.setFlags(QtCore.Qt.ItemIsEnabled)
-            drill_count = QtGui.QTableWidgetItem('%d' % drill_cnt)
+            drill_count = QtWidgets.QTableWidgetItem('%d' % drill_cnt)
             drill_count.setFlags(QtCore.Qt.ItemIsEnabled)
             self.ui.tools_table.setItem(i, 1, dia)  # Diameter
             self.ui.tools_table.setItem(i, 2, drill_count)  # Number of drills per tool
@@ -817,9 +820,9 @@ class FlatCAMExcellon(FlatCAMObj, Excellon):
         self.ui.tools_table.resizeColumnsToContents()
         self.ui.tools_table.resizeRowsToContents()
         horizontal_header = self.ui.tools_table.horizontalHeader()
-        horizontal_header.setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
-        horizontal_header.setResizeMode(1, QtGui.QHeaderView.Stretch)
-        horizontal_header.setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
+        horizontal_header.setResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        horizontal_header.setResizeMode(1, QtWidgets.QHeaderView.Stretch)
+        horizontal_header.setResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
         # horizontal_header.setStretchLastSection(True)
         self.ui.tools_table.verticalHeader().hide()
         self.ui.tools_table.setSortingEnabled(True)
@@ -1097,6 +1100,7 @@ class FlatCAMCNCjob(FlatCAMObj, CNCjob):
             "postprocess": self.ui.process_script,
             "dwell": self.ui.dwell_cb,
             "dwelltime": self.ui.dwelltime_entry
+            # "coordinate_format": self.ui.coo
         })
 
         self.ui.plot_cb.stateChanged.connect(self.on_plot_cb_click)
@@ -1117,15 +1121,23 @@ class FlatCAMCNCjob(FlatCAMObj, CNCjob):
         self.read_form()
 
         try:
-            filename = str(QtGui.QFileDialog.getSaveFileName(caption="Export G-Code ...",
-                                                         directory=self.app.defaults["last_folder"]))
+            filename_and_type = QtWidgets.QFileDialog.getSaveFileName(caption="Export G-Code ...",
+                                                                      directory=self.app.defaults["last_folder"],
+                                                                      filter='G-Code files (*.ngc)')
         except TypeError:
-            filename = str(QtGui.QFileDialog.getSaveFileName(caption="Export G-Code ..."))
+            filename_and_type = QtWidgets.QFileDialog.getSaveFileName(caption="Export G-Code ...",
+                                                                      filter='G-Code files (*.ngc)')
 
+        filename = filename_and_type[0]
+        if filename == '':
+            self.inform.emit("Export G-Code cancelled.")
+            return
+        if not os.path.splitext(filename)[1]:
+            selected_ext = re.search('\\((.+?)\\)', filename_and_type[1]).group(1).replace('*', '')
+            filename = filename + selected_ext
         preamble = str(self.ui.prepend_text.get_value())
         postamble = str(self.ui.append_text.get_value())
         processor = str(self.ui.process_script.get_value())
-
         self.export_gcode(filename, preamble=preamble, postamble=postamble, processor=processor)
 
     def dwell_generator(self, lines):
@@ -1160,7 +1172,7 @@ class FlatCAMCNCjob(FlatCAMObj, CNCjob):
 
             yield line
 
-        raise StopIteration
+        # raise StopIteration
 
     def export_gcode(self, filename, preamble='', postamble='', processor=''):
 
@@ -1174,13 +1186,12 @@ class FlatCAMCNCjob(FlatCAMObj, CNCjob):
 
         ## Write
         with open(filename, 'w') as f:
-            f.write(preamble + "\n")
-
+            if preamble != '':
+                f.write(preamble + "\n")
             for line in lines:
-
                 f.write(line)
-
-            f.write(postamble)
+            if postamble != '':
+                f.write(postamble)
 
         # Just for adding it to the recent files list.
         self.app.file_opened.emit("cncjob", filename)

@@ -1,4 +1,4 @@
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
 from GUIElements import RadioSet, EvalEntry, LengthEntry
 from FlatCAMTool import FlatCAMTool
 #from FlatCAMObj import FlatCAMGerber, FlatCAMExcellon
@@ -15,17 +15,17 @@ class DblSidedTool(FlatCAMTool):
         FlatCAMTool.__init__(self, app)
 
         ## Title
-        title_label = QtGui.QLabel("<font size=4><b>%s</b></font>" % self.toolName)
+        title_label = QtWidgets.QLabel("<font size=4><b>%s</b></font>" % self.toolName)
         self.layout.addWidget(title_label)
 
         ## Form Layout
-        form_layout = QtGui.QFormLayout()
+        form_layout = QtWidgets.QFormLayout()
         self.layout.addLayout(form_layout)
 
         ## Layer to mirror
-        self.object_combo = QtGui.QComboBox()
+        self.object_combo = QtWidgets.QComboBox()
         self.object_combo.setModel(self.app.collection.model)
-        self.botlay_label = QtGui.QLabel("Bottom Layer:")
+        self.botlay_label = QtWidgets.QLabel("Bottom Layer:")
         self.botlay_label.setToolTip(
             "Layer to be mirrorer."
         )
@@ -35,7 +35,7 @@ class DblSidedTool(FlatCAMTool):
         ## Axis
         self.mirror_axis = RadioSet([{'label': 'X', 'value': 'X'},
                                      {'label': 'Y', 'value': 'Y'}])
-        self.mirax_label = QtGui.QLabel("Mirror Axis:")
+        self.mirax_label = QtWidgets.QLabel("Mirror Axis:")
         self.mirax_label.setToolTip(
             "Mirror vertically (X) or horizontally (Y)."
         )
@@ -45,7 +45,7 @@ class DblSidedTool(FlatCAMTool):
         ## Axis Location
         self.axis_location = RadioSet([{'label': 'Point', 'value': 'point'},
                                        {'label': 'Box', 'value': 'box'}])
-        self.axloc_label = QtGui.QLabel("Axis Location:")
+        self.axloc_label = QtWidgets.QLabel("Axis Location:")
         self.axloc_label.setToolTip(
             "The axis should pass through a <b>point</b> or cut "
             "a specified <b>box</b> (in a Geometry object) in "
@@ -55,8 +55,8 @@ class DblSidedTool(FlatCAMTool):
         form_layout.addRow(self.axloc_label, self.axis_location)
 
         ## Point/Box
-        self.point_box_container = QtGui.QVBoxLayout()
-        self.pb_label = QtGui.QLabel("Point/Box:")
+        self.point_box_container = QtWidgets.QVBoxLayout()
+        self.pb_label = QtWidgets.QLabel("Point/Box:")
         self.pb_label.setToolTip(
             "Specify the point (x, y) through which the mirror axis "
             "passes or the Geometry object containing a rectangle "
@@ -67,14 +67,14 @@ class DblSidedTool(FlatCAMTool):
 
         self.point = EvalEntry()
         self.point_box_container.addWidget(self.point)
-        self.box_combo = QtGui.QComboBox()
+        self.box_combo = QtWidgets.QComboBox()
         self.box_combo.setModel(self.app.collection.model)
         self.point_box_container.addWidget(self.box_combo)
         self.box_combo.hide()
 
         ## Alignment holes
         self.alignment_holes = EvalEntry()
-        self.ah_label = QtGui.QLabel("Alignment Holes:")
+        self.ah_label = QtWidgets.QLabel("Alignment Holes:")
         self.ah_label.setToolTip(
             "Alignment holes (x1, y1), (x2, y2), ... "
             "on one side of the mirror axis."
@@ -83,7 +83,7 @@ class DblSidedTool(FlatCAMTool):
 
         ## Drill diameter for alignment holes
         self.drill_dia = LengthEntry()
-        self.dd_label = QtGui.QLabel("Drill diam.:")
+        self.dd_label = QtWidgets.QLabel("Drill diam.:")
         self.dd_label.setToolTip(
             "Diameter of the drill for the "
             "alignment holes."
@@ -91,16 +91,16 @@ class DblSidedTool(FlatCAMTool):
         form_layout.addRow(self.dd_label, self.drill_dia)
 
         ## Buttons
-        hlay = QtGui.QHBoxLayout()
+        hlay = QtWidgets.QHBoxLayout()
         self.layout.addLayout(hlay)
         hlay.addStretch()
-        self.create_alignment_hole_button = QtGui.QPushButton("Create Alignment Drill")
+        self.create_alignment_hole_button = QtWidgets.QPushButton("Create Alignment Drill")
         self.create_alignment_hole_button.setToolTip(
             "Creates an Excellon Object containing the "
             "specified alignment holes and their mirror "
             "images."
         )
-        self.mirror_object_button = QtGui.QPushButton("Mirror Object")
+        self.mirror_object_button = QtWidgets.QPushButton("Mirror Object")
         self.mirror_object_button.setToolTip(
             "Mirrors (flips) the specified object around "
             "the specified axis. Does not create a new "

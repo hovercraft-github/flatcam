@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtWidgets
 from copy import copy
 #import FlatCAMApp
 import re
@@ -7,7 +7,7 @@ import logging
 log = logging.getLogger('base')
 
 
-class RadioSet(QtGui.QWidget):
+class RadioSet(QtWidgets.QWidget):
     def __init__(self, choices, orientation='horizontal', parent=None):
         """
         The choices are specified as a list of dictionaries containing:
@@ -24,14 +24,14 @@ class RadioSet(QtGui.QWidget):
         self.choices = copy(choices)
 
         if orientation == 'horizontal':
-            layout = QtGui.QHBoxLayout()
+            layout = QtWidgets.QHBoxLayout()
         else:
-            layout = QtGui.QVBoxLayout()
+            layout = QtWidgets.QVBoxLayout()
 
-        group = QtGui.QButtonGroup(self)
+        group = QtWidgets.QButtonGroup(self)
 
         for choice in self.choices:
-            choice['radio'] = QtGui.QRadioButton(choice['label'])
+            choice['radio'] = QtWidgets.QRadioButton(choice['label'])
             group.addButton(choice['radio'])
             layout.addWidget(choice['radio'], stretch=0)
             choice['radio'].toggled.connect(self.on_toggle)
@@ -63,7 +63,7 @@ class RadioSet(QtGui.QWidget):
         log.error("Value given is not part of this RadioSet: %s" % str(val))
 
 
-class LengthEntry(QtGui.QLineEdit):
+class LengthEntry(QtWidgets.QLineEdit):
     def __init__(self, output_units='IN', parent=None):
         super(LengthEntry, self).__init__(parent)
 
@@ -122,7 +122,7 @@ class LengthEntry(QtGui.QLineEdit):
         self.setText(str(val))
 
 
-class FloatEntry(QtGui.QLineEdit):
+class FloatEntry(QtWidgets.QLineEdit):
     def __init__(self, parent=None):
         super(FloatEntry, self).__init__(parent)
         self.readyToEdit = True
@@ -161,7 +161,7 @@ class FloatEntry(QtGui.QLineEdit):
         self.setText("%.6f" % val)
 
 
-class IntEntry(QtGui.QLineEdit):
+class IntEntry(QtWidgets.QLineEdit):
 
     def __init__(self, parent=None, allow_empty=False, empty_val=None):
         super(IntEntry, self).__init__(parent)
@@ -199,7 +199,7 @@ class IntEntry(QtGui.QLineEdit):
         self.setText(str(val))
 
 
-class FCEntry(QtGui.QLineEdit):
+class FCEntry(QtWidgets.QLineEdit):
     def __init__(self, parent=None):
         super(FCEntry, self).__init__(parent)
         self.readyToEdit = True
@@ -224,7 +224,7 @@ class FCEntry(QtGui.QLineEdit):
         self.setText(str(val))
 
 
-class EvalEntry(QtGui.QLineEdit):
+class EvalEntry(QtWidgets.QLineEdit):
     def __init__(self, parent=None):
         super(EvalEntry, self).__init__(parent)
         self.readyToEdit = True
@@ -261,7 +261,7 @@ class EvalEntry(QtGui.QLineEdit):
         self.setText(str(val))
 
 
-class FCCheckBox(QtGui.QCheckBox):
+class FCCheckBox(QtWidgets.QCheckBox):
     def __init__(self, label='', parent=None):
         super(FCCheckBox, self).__init__(str(label), parent)
 
@@ -275,7 +275,7 @@ class FCCheckBox(QtGui.QCheckBox):
         self.set_value(not self.get_value())
 
 
-class FCTextArea(QtGui.QPlainTextEdit):
+class FCTextArea(QtWidgets.QPlainTextEdit):
     def __init__(self, parent=None):
         super(FCTextArea, self).__init__(parent)
 
@@ -285,7 +285,7 @@ class FCTextArea(QtGui.QPlainTextEdit):
     def get_value(self):
         return str(self.toPlainText())
 
-class FCInputDialog(QtGui.QInputDialog):
+class FCInputDialog(QtWidgets.QInputDialog):
     def __init__(self, parent=None, ok=False, val=None):
         super(FCInputDialog, self).__init__(parent)
         self.allow_empty = ok
@@ -324,7 +324,7 @@ class FCInputDialog(QtGui.QInputDialog):
         pass
 
 
-class FCButton(QtGui.QPushButton):
+class FCButton(QtWidgets.QPushButton):
     def __init__(self, parent=None):
         super(FCButton, self).__init__(parent)
 
@@ -335,14 +335,14 @@ class FCButton(QtGui.QPushButton):
         self.setText(str(val))
 
 
-class VerticalScrollArea(QtGui.QScrollArea):
+class VerticalScrollArea(QtWidgets.QScrollArea):
     """
-    This widget extends QtGui.QScrollArea to make a vertical-only
+    This widget extends QtWidgets.QScrollArea to make a vertical-only
     scroll area that also expands horizontally to accomodate
     its contents.
     """
     def __init__(self, parent=None):
-        QtGui.QScrollArea.__init__(self, parent=parent)
+        QtWidgets.QScrollArea.__init__(self, parent=parent)
         self.setWidgetResizable(True)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
@@ -371,7 +371,7 @@ class VerticalScrollArea(QtGui.QScrollArea):
             # else:
             #     log.debug(" Scroll bar hidden")
             #     self.setMinimumWidth(self.widget().minimumSizeHint().width())
-        return QtGui.QWidget.eventFilter(self, source, event)
+        return QtWidgets.QWidget.eventFilter(self, source, event)
 
 
 class OptionalInputSection:
