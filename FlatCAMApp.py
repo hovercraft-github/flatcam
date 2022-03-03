@@ -77,7 +77,7 @@ class App(QtCore.QObject):
     log.addHandler(handler)
 
     ## Version
-    version = 8.5
+    version = 8.6
     # version_date_str = "2016/7"
     version_date = (0, 0, 0)
     version_name = None

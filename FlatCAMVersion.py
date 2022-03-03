@@ -13,9 +13,9 @@
 import logging
 
 version = {
-    "number": 8.5,
-    "date": (2016, 7, 1),  # Year, Month, Day
-    "name": None,
+    "number": 8.6,
+    "date": (2022, 3, 3),  # Year, Month, Day
+    "name": "PyQt5 port",
     "release": False,
 }
 
