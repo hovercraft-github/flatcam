@@ -60,7 +60,7 @@ setup(
         'numpy>=1.8',
         'scipy',
         'matplotlib>=1.3.1',
-        'shapely>=1.3'
+        'shapely>=1.3',
         'rtree',
         'svg.path'
     ],

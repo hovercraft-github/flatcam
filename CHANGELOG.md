@@ -1,3 +1,8 @@
+# 8.6 (2025-10-02) by Al Pon
+
+### New Features
+* Ported to python 3.12
+
 # 8.6 (2022-03-03) by Al Pon
 
 ### New Features

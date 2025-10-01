@@ -1,5 +1,6 @@
 import pkgutil
 import sys
+import importlib.util
 
 # Todo: I think these imports are not needed.
 # allowed command modules (please append them alphabetically ordered)
@@ -53,7 +54,10 @@ import tclCommands.TclCommandWriteGCode
 __all__ = []
 
 for loader, name, is_pkg in pkgutil.walk_packages(__path__):
-    module = loader.find_module(name).load_module(name)
+    module_spec = loader.find_spec(name) #.load_module(name)
+    if module_spec:
+        module = importlib.util.module_from_spec(module_spec)
+        module_spec.loader.exec_module(module)
     __all__.append(name)
 
 
