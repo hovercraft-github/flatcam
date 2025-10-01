@@ -57,10 +57,10 @@ setup(
 
     install_requires=[
         'simplejson',
-        'numpy>=1.8',
+        'numpy>=1.8,<2.0',
         'scipy',
         'matplotlib>=1.3.1',
-        'shapely>=1.3',
+        'shapely>=1.3,<=1.8',
         'rtree',
         'svg.path'
     ],
