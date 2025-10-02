@@ -9,5 +9,5 @@ rtree
 scipy
 svg.path
 
-PyQt5
+PyQt5 --config-settings="--confirm-license="
 setuptools

@@ -1,6 +1,7 @@
 #!/bin/sh -e
 # "-e" exists on first error.
 
+sudo apt update
 sudo apt install libpng-dev \
                 libfreetype6 \
 				libfreetype6-dev \
@@ -17,5 +18,7 @@ sudo apt install libpng-dev \
 				python3-tk \
 				python3-shapely \
 				python3-rtree \
-				python3-svg.path
-
+				python3-svg.path \
+				python3-venv \
+				qt5-qmake \
+				qtbase5-dev
